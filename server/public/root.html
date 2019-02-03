@@ -6,6 +6,15 @@
 
 
     <style>
+    .orientationReading {
+        background-color: #302020;
+        color: white;
+        border-radius: 2em;
+        width: 4em;
+        height: 1em;
+        text-align: center;
+        font-size:1em;
+    }
     </style>
 
 
@@ -17,6 +26,13 @@
                 how are you doing today?<br />
                 it seems you have come accross my server.
             </p>
+            <a id="connectionStatus">Not Connected</a>
+            <div id='orientationReading' class='orientationReading'>
+            </div>
+
+            <div id="console">
+
+            </div>
         </div>
     </body>
 
@@ -31,6 +47,7 @@
 
     ws.onopen = function() {
         ws.send("ping");
+        document.getElementById("connectionStatus").innerHTML = "Connected";
     }
 
     ws.onerror = function(error) {
@@ -48,6 +65,23 @@
         else if (typeof(message) === "object") {
             ws.send(JSON.stringify(message));
         }
+    }
+
+
+    // +===============================+
+    // |         Device Setup          |
+    // +===============================+
+
+    if (window.DeviceMotionEvent) {
+        window.addEventListener("devicemotion", motion, false);
+    }
+    else {
+        document.getElementById('console').innerHTML += "No Device Motion<br />";
+    }
+
+    function motion(event) {
+        document.getElementById("orientationReading").innerHTML = str(event.accelerationIncludingGravity.x) + ", " + str(event.accelerationIncludingGravity.y) + ", " + str(event.accelerationIncludingGravity.z);
+        
     }
 
     </script>

@@ -100,6 +100,7 @@ var httpClients = []
  * Send 'hiya'
  */
 app.get('/', function(req, res) {
+    console.log("serving root");
     res.sendFile(__dirname+"/public/root.html");
 });
 
