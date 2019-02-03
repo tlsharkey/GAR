@@ -1,0 +1,54 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+    </head>
+
+
+
+    <style>
+    </style>
+
+
+
+    <body>
+        <div>
+            <h1>Hello there</h1>
+            <p>
+                how are you doing today?<br />
+                it seems you have come accross my server.
+            </p>
+        </div>
+    </body>
+
+
+
+    <script>
+
+    // +===============================+
+    // |          WebSocket            |
+    // +===============================+
+    var ws = new WebSocket('ws://localhost:3000', ['soap', 'xmpp']);
+
+    ws.onopen = function() {
+        ws.send("ping");
+    }
+
+    ws.onerror = function(error) {
+        console.log("Websocket Error:", error);
+    }
+
+    ws.onmessage = function(e) {
+        console.log("Server:", e.data);
+    }
+
+    function sendToServer(message) {
+        if (typeof(message) === "string") {
+            ws.send(message);
+        }
+        else if (typeof(message) === "object") {
+            ws.send(JSON.stringify(message));
+        }
+    }
+
+    </script>
+</html>
