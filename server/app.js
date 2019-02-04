@@ -4,6 +4,9 @@ const net = require('net');
 const config = require('./config');
 const app = express();
 const expressWs = require('express-ws')(app);
+const path = require('path');
+const fs = require('fs');
+
 
 
 console.log(config.hostname, ",", config.port);
@@ -94,6 +97,10 @@ tcpServer.listen(config.port+1, function() {
 
 var httpClients = []
 
+app.use('/javascripts',express.static('public/javascripts'));
+app.use('/stylesheets',express.static('public/stylesheets'));
+app.use('/third_party',express.static('node_modules/three.ar.js/third_party'));
+app.use('/dist',express.static('node_modules/three.ar.js/dist'));
 
 /*
  * Root
@@ -126,6 +133,25 @@ app.get('/pair', function(req, res) {
 });
 
 
+app.get('/sensor', function(req, res) {
+    console.log("Serving sensor");
+    res.sendFile(__dirname+"/public/sensor.html");
+});
+
+app.get('/vr', function(req, res) {
+    console.log("Serving VR");
+    res.sendFile(__dirname+"/public/webvr.html");
+})
+
+app.get('/anchor', function(req, res) {
+    res.sendFile(__dirname+"/public/examples/anchors.html");
+})
+
+app.get('/x', function(req, res) {
+    res.sendFile(__dirname+"/node_modules/three.ar.js/examples/spawn-at-camera.html");
+})
+
+
 
 /*
  * Start Server
@@ -155,12 +181,16 @@ app.ws('/', function(ws, req) {
             case "verification":
                 console.log("Verifying (does nothing)");
                 break;
+            case "getModelLocations":
+                console.log("Sending Model Locations");
+                sendModelLocations(ws);
+                break;
             default:
                 console.log("Got unknown message of", msg.type, "type.");
                 break;
         }
     });
-})
+});
 
 
 
@@ -189,4 +219,38 @@ function readMessage(msg) {
     }
 
     return msg;
+}
+
+function sendWsMessage(msg, websocket) {
+    websocket.send(JSON.stringify(msg));
+}
+
+
+/*
+ * Reads models/locations.json and sends its contents to websocket
+ */
+function sendModelLocations(ws) {
+    var filepath = "public/models/locations.json";
+
+    fs.stat(filepath, function(err, stat) {
+        // If the file exists, append to the list
+        if (err == null) {
+            fs.readFile(filepath, 'utf8', function(err, data) {
+                if (err) {
+                    console.error("\tError Reading", filepath, "\n\t\tFile not saved.");
+                    return;
+                }
+                let locations = JSON.parse(data.toString());
+                sendWsMessage({type:"modelLocations", locations:locations}, ws);
+                console.log("Model Locations Sent.");
+            });
+        }
+        // If the folder doesn't exist, create it.
+        else if (err.code == 'ENOENT') {
+            console.error("No locations.json file")
+        }
+        else {
+            console.error("Error while reading locations.json", err.code)
+        }
+    })
 }

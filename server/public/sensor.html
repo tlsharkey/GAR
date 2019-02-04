@@ -1,0 +1,203 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+    </head>
+
+    <body>
+        <div>
+            <!-- Rotation<bR />
+            <input type=range min=0 max=0.1 step=0.001 value=0.01 onchange="updateRotation(event, 'x')" /><br />
+            <input type=range min=0 max=0.1 step=0.001 value=0.01 onchange="updateRotation(event, 'y')" /><br />
+            <input type=range min=0 max=0.1 step=0.001 value=0.01 onchange="updateRotation(event, 'z')" /><br />
+
+            Position <br />
+            <input type=range min=0 max=5 step=0.1 value=0 onchange="updatePosition(event, 'x')" /><br />
+            <input type=range min=0 max=5 step=0.1 value=0 onchange="updatePosition(event, 'y')" /><br />
+            <input type=range min=0 max=10 step=0.1 value=5 onchange="updatePosition(event, 'z')" /><br /> -->
+
+            <button onclick="getLocation()">GPS</button><a id="orientation">Orientation</a>
+        </div>
+    </body>
+
+    <script src="javascripts/three.min.js" type="text/javascript"></script>
+    <script src="javascripts/three.ar.js" type="text/javascript"></script>
+    <script src="javascripts/WebVR.js" type="text/javascript"></script>
+    <script src="javascripts/ore.js" type="text/javascript"></script>
+    <script>
+
+        // + ========================= +
+        // |       Three.js            |
+        // + ========================= +
+        var scene = new THREE.Scene();
+		var camera = new THREE.PerspectiveCamera( 100, window.innerWidth/window.innerHeight, 0.1, 1000 );
+
+		var renderer = new THREE.WebGLRenderer();
+		renderer.setSize( window.innerWidth, window.innerHeight );
+		document.body.appendChild( renderer.domElement );
+
+		var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+		var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+		var cube = new THREE.Mesh( geometry, material );
+		scene.add( cube );
+
+		camera.position.z = 5;
+        renderer.render(scene, camera);
+
+        /// Create AxesHelper
+        var axesHelper = new THREE.AxesHelper(5);
+        scene.add(axesHelper);
+
+
+
+        // + ========================= +
+        // |       Movement            |
+        // + ========================= +
+        function handleOrientation(event) {
+            var euler;
+            if (event.webkitCompassHeading) {
+                //console.log(event.webkitCompassHeading);
+                euler = new THREE.Euler(0, event.webkitCompassHeading, 0, "XYZ");
+                document.getElementById("orientation").innerHTML = event.webkitCompassHeading;
+                camera.setRotationFromEuler(euler);
+                renderer.render(scene, camera);
+                return;
+            }
+            else {
+                var x = event.alpha/1.1;
+                var y = event.beta/1.1;
+                var z = event.gamma/1.1;
+                var abs = event.absolute;
+
+                euler = new THREE.Euler(x, y, z, "XYZ");
+
+                document.getElementById("orientation").innerHTML = JSON.stringify([x,y,z,abs]);
+
+                camera.setRotationFromEuler(euler);
+                renderer.render(scene, camera);
+            }
+        }
+
+        function handleMotion(event) {
+            return;
+            //console.log(event);
+            var accel = event.acceleration;
+            for (let key in accel) {
+                if (key !== "x" && key !== "y" && key !== "z") {
+                    continue;
+                }
+                if (accel[key] < 0.5) {
+                    accel[key] = 0;
+                }
+                else {
+                    console.log("move");
+                }
+            }
+            var pos = camera.position;
+            camera.position.set(pos.x+accel.x, pos.y+accel.y, pos.z+accel.z);
+        }
+
+        window.addEventListener('deviceorientation', handleOrientation);
+
+        // ========== Device Acceleration ========= //
+        //var acceleration = instanceOfDeviceMotionEvent.
+        window.addEventListener('devicemotion', handleMotion, true);
+
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showLocation)
+            }
+        }
+
+        function showLocation(position) {
+            // TODO: get serveral measurements and average them
+            console.log("Lat:", position.coords.latitude, "Long:", position.coords.longitude);
+            // Set camera to cartesian location
+            var loc = convert(position.coords.latitude, position.coords.longitude);
+            camera.position.set(loc.x, loc.y, loc.z);
+            console.debug("Camera position set to", loc);
+        }
+
+        /* Converts latitude and longitude to cartesian coordinates in meters */
+        function convert(lat, lon) {
+            const EARTH_RADIUS = 6371000; //meters
+            var r = EARTH_RADIUS;
+
+            // convert to radians
+            var lat = lat * Math.PI/180;
+            var lon = lon * Math.PI/180;
+
+            // Calculate cartesian coordinates
+            let x = r * Math.cos(lat) * Math.cos(lon);
+            let y = r * Math.cos(lat) * Math.sin(lon);
+            let z = r * Math.sin(lat);
+
+            return {x:x, y:y, z:z};
+        }
+
+
+        // + ========================= +
+        // |       Websocket           |
+        // + ========================= +
+        var host = location.origin.replace(/^http/, 'ws')
+        var ws = new WebSocket(host);
+
+        ws.onopen = function() {
+            sendToServer({type:"getModelLocations"});
+            console.log("Connected to Websocket");
+        }
+
+        ws.onerror = function(error) {
+            console.log("Websocket Error:", error);
+        }
+
+        ws.onmessage = function(e) {
+            let data = JSON.parse(e.data);
+            switch (data.type) {
+                case "modelLocations":
+                    console.log("Got Model Locations");
+                    modelLocations = data.locations;
+                    placeModels();
+                    break;
+                default:
+                    console.log("Got Unknow Type", data.type, data);
+                    break;
+            }
+        }
+
+        function sendToServer(message) {
+            if (typeof(message) === "string") {
+                ws.send(message);
+            }
+            else if (typeof(message) === "object") {
+                ws.send(JSON.stringify(message));
+            }
+        }
+
+
+        // + ========================= +
+        // |     Placing Models        |
+        // + ========================= +
+        var modelLocations;
+
+        function placeModels() {
+            if (!modelLocations) { return console.debug("Haven't gotten model locations yet"); }
+
+
+            var geometry = new THREE.BoxGeometry( 10, 10, 10 );
+            var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+
+            for (let i=0; i<modelLocations.length; i++) {
+                // Create Cube
+        		let cube = new THREE.Mesh( geometry, material );
+        		scene.add( cube );
+
+                // Place Cube
+                let loc = convert(modelLocations[i].latitude, modelLocations[i].longitude);
+                scene.children[scene.children.length-1].position.set(loc.x, loc.y, loc.z);
+
+                console.debug("Set object at", loc);
+            }
+        }
+    </script>
+</html>

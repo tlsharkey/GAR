@@ -12,6 +12,8 @@
     "express-ws": "^4.0.0",
     "http-errors": "~1.6.2",
     "jade": "~1.11.0",
-    "morgan": "^1.9.1"
+    "morgan": "^1.9.1",
+    "three": "^0.101.1",
+    "three.ar.js": "^0.1.8"
   }
 }
