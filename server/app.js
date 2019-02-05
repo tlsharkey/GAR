@@ -101,6 +101,7 @@ app.use('/javascripts',express.static('public/javascripts'));
 app.use('/stylesheets',express.static('public/stylesheets'));
 app.use('/third_party',express.static('node_modules/three.ar.js/third_party'));
 app.use('/dist',express.static('node_modules/three.ar.js/dist'));
+app.use('/models',express.static(__dirname + '/public/models'));
 
 /*
  * Root
