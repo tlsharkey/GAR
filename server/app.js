@@ -6,7 +6,9 @@ const app = express();
 const expressWs = require('express-ws')(app);
 const path = require('path');
 const fs = require('fs');
-
+//const formidable = require('formidable');
+const fileUpload = require('express-fileupload');
+const bb = require("express-busboy");
 
 
 console.log(config.hostname, ",", config.port);
@@ -102,6 +104,13 @@ app.use('/stylesheets',express.static('public/stylesheets'));
 app.use('/third_party',express.static('node_modules/three.ar.js/third_party'));
 app.use('/dist',express.static('node_modules/three.ar.js/dist'));
 app.use('/models',express.static(__dirname + '/public/models'));
+app.use(fileUpload());
+
+bb.extend(app, {
+    upload: true,
+    path: './public/models',
+    //allowedPath: /^\/uploadFile$/,
+});
 
 /*
  * Root
@@ -151,6 +160,23 @@ app.get('/anchor', function(req, res) {
 app.get('/x', function(req, res) {
     res.sendFile(__dirname+"/node_modules/three.ar.js/examples/spawn-at-camera.html");
 })
+
+app.get('/upload', function(req, res) {
+    console.log("Serving Upload Page");
+    res.sendFile(__dirname+"/public/upload.html");
+});
+
+app.post('/uploadFile', function(req, res) {
+    console.log("Got Upload", req.files);
+    //return console.log(req);
+    if (Object.keys(req.files).length == 0) {
+        console.log("No files uploaded");
+        return res.status(400).send("No files were uploaded");
+    }
+
+    //console.log(req.files.length);
+    res.send("File Uploaded");
+});
 
 
 

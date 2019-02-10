@@ -35,7 +35,7 @@
             </div>
             <a href="/sensor">Sensor</a>
             <a href="/vr">WebVR</a>
-            <a href="/anchor">Anchor</a>
+            <a href="/anchor">Anchor</a><br /><br />
             <a href="/x">Placing</a>
         </div>
     </body>
@@ -84,7 +84,7 @@
     }
 
     function motion(event) {
-        document.getElementById("orientationReading").innerHTML = str(event.accelerationIncludingGravity.x) + ", " + str(event.accelerationIncludingGravity.y) + ", " + str(event.accelerationIncludingGravity.z);
+        document.getElementById("orientationReading").innerHTML = event.accelerationIncludingGravity.x.toString() + ", " + event.accelerationIncludingGravity.y.toString() + ", " + event.accelerationIncludingGravity.z.toString();
 
     }
 

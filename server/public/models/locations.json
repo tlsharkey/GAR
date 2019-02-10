@@ -1,12 +1,20 @@
 [
     {
-        "model":"monkey",
+        "model":"monkey.glb",
         "latitude": 32.882389860813824,
-        "longitude": -117.23465491029948
+        "longitude": -117.23465491029948,
+        "elevation":-2
     },
     {
-        "model": null,
-        "latitude": 32.882389860815824,
-        "longitude": -117.23465491039948
+        "model": "box.glb",
+        "latitude": 32.751737399999996,
+        "longitude": -117.1645001,
+        "elevation": 92
+    },
+    {
+        "model": "crying.gltf",
+        "latitude": 32.751737399999996,
+        "longitude": -117.1645001,
+        "elevation": 92
     }
 ]
