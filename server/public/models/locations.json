@@ -9,12 +9,24 @@
         "model": "box.glb",
         "latitude": 32.751737399999996,
         "longitude": -117.1645001,
-        "elevation": 92
+        "elevation": 85
     },
     {
-        "model": "crying.gltf",
+        "model": "malefig.glb",
         "latitude": 32.751737399999996,
         "longitude": -117.1645001,
-        "elevation": 92
+        "elevation": 0
+    },
+    {
+        "model": "malefig.glb",
+        "latitude": 32.880073,
+        "longitude": -117.237634,
+        "elevation": 0
+    },
+    {
+        "model": "malefig.glb",
+        "latitude": 32.880042,
+        "longitude": -117.237635,
+        "elevation": 0
     }
 ]
